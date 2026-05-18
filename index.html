@@ -1,0 +1,897 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>evilonside — контент</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --black: #080808;
+  --white: #ffffff;
+  --card: #ffffff;
+  --text-dark: #111111;
+  --muted-dark: #666666;
+  --orange: #e8510a;
+  --orange2: #c13a00;
+}
+
+html, body {
+  width: 100%; min-height: 100vh;
+  background: var(--black);
+  font-family: 'Inter', -apple-system, sans-serif;
+}
+
+.bg { position: fixed; inset: 0; z-index: 0; overflow: hidden; }
+.bg-glow {
+  position: absolute;
+  bottom: -80px; left: 50%;
+  transform: translateX(-50%);
+  width: 1400px; height: 800px;
+  background: radial-gradient(ellipse at center bottom, rgba(220,70,10,0.45) 0%, rgba(180,40,0,0.22) 40%, transparent 72%);
+  filter: blur(80px);
+  pointer-events: none;
+}
+
+.shell {
+  position: relative; z-index: 1;
+  min-height: 100vh;
+  display: flex; flex-direction: column; align-items: center;
+  padding: 40px 24px 24px; gap: 20px;
+}
+
+.main-card {
+  background: var(--card);
+  border-radius: 28px;
+  width: 100%; max-width: 960px;
+  padding: 36px 40px;
+  color: var(--text-dark);
+}
+
+.card-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 28px;
+}
+.card-title { font-size: 22px; font-weight: 700; letter-spacing: -0.03em; }
+.card-sub { font-size: 11px; color: var(--muted-dark); margin-top: 2px; }
+.card-date {
+  font-size: 12px; font-weight: 500; color: var(--muted-dark);
+  background: rgba(0,0,0,0.06); padding: 5px 14px; border-radius: 20px;
+}
+
+/* STATS */
+.stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+.stat-mini { background: rgba(0,0,0,0.04); border-radius: 14px; padding: 14px 16px; }
+.stat-mini-label { font-size: 10px; font-weight: 600; color: var(--muted-dark); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 6px; }
+.stat-mini-val { font-size: 28px; font-weight: 700; letter-spacing: -0.03em; color: var(--text-dark); line-height: 1; }
+.stat-mini-sub { font-size: 11px; color: var(--muted-dark); margin-top: 4px; }
+.prog { height: 3px; background: rgba(0,0,0,0.1); border-radius: 2px; margin-top: 8px; overflow: hidden; }
+.prog-fill { height: 100%; background: var(--text-dark); border-radius: 2px; transition: width 0.4s; }
+
+.fol-inline {
+  display: flex; gap: 6px; margin-top: 8px;
+}
+.fol-inline input {
+  flex: 1; background: rgba(0,0,0,0.05); border: 1.5px solid rgba(0,0,0,0.1);
+  border-radius: 8px; padding: 5px 8px; color: var(--text-dark);
+  font-family: 'Inter', sans-serif; font-size: 11px; outline: none;
+}
+.fol-inline input::placeholder { color: var(--muted-dark); }
+.fol-inline button {
+  padding: 5px 12px; background: var(--text-dark); color: white;
+  border: none; border-radius: 8px; cursor: pointer;
+  font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 600;
+  transition: opacity 0.15s;
+}
+.fol-inline button:hover { opacity: 0.75; }
+
+.divider { height: 1px; background: rgba(0,0,0,0.08); margin: 24px 0; }
+.sec-label { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted-dark); margin-bottom: 12px; }
+
+/* WEEK NAV */
+.week-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px;
+}
+.week-nav-label { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; }
+.week-nav-btn {
+  background: rgba(0,0,0,0.06); border: none; border-radius: 8px;
+  padding: 6px 16px; cursor: pointer; font-family: 'Inter', sans-serif;
+  font-size: 12px; color: var(--muted-dark); transition: all 0.15s;
+}
+.week-nav-btn:hover:not(:disabled) { background: var(--text-dark); color: white; }
+.week-nav-btn:disabled { opacity: 0.25; cursor: default; }
+
+/* WEEK GRID */
+.week-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+
+/* DAY CARD */
+.day-card {
+  background: rgba(0,0,0,0.04); border-radius: 14px; padding: 12px 10px;
+  position: relative; min-height: 148px;
+  display: flex; flex-direction: column; gap: 5px;
+  transition: all 0.18s;
+}
+.day-card.clickable { cursor: pointer; }
+.day-card.clickable:hover { background: rgba(0,0,0,0.09); transform: translateY(-1px); }
+.day-card.is-today { background: #111111; color: white; }
+.day-card.is-today.clickable:hover { background: #1a1a1a; }
+.day-card.is-done { opacity: 0.38; }
+
+.day-hdr { display: flex; justify-content: space-between; align-items: flex-start; }
+.day-name { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-dark); }
+.day-card.is-today .day-name { color: rgba(255,255,255,0.45); }
+.day-num { font-size: 17px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+.day-card.is-today .day-num { color: white; }
+
+.done-toggle {
+  position: absolute; top: 9px; right: 9px;
+  width: 17px; height: 17px; border-radius: 50%;
+  border: 1.5px solid rgba(0,0,0,0.18); background: transparent;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 9px; color: transparent; transition: all 0.15s;
+  line-height: 1;
+}
+.day-card.is-today .done-toggle { border-color: rgba(255,255,255,0.25); }
+.done-toggle:hover { border-color: #22c55e; }
+.day-card.is-done .done-toggle { background: #22c55e; border-color: #22c55e; color: white; }
+
+.day-badge {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase;
+  padding: 3px 7px; border-radius: 6px; width: fit-content; margin-top: 2px;
+}
+.badge-reels { background: rgba(0,0,0,0.1); color: var(--text-dark); }
+.day-card.is-today .badge-reels { background: rgba(255,255,255,0.18); color: white; }
+.badge-life { background: rgba(0,0,0,0.05); color: var(--muted-dark); }
+.day-card.is-today .badge-life { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.5); }
+.badge-sell { background: rgba(232,81,10,0.14); color: var(--orange2); }
+.badge-stories { background: rgba(232,81,10,0.1); color: var(--orange); }
+.badge-rest { background: rgba(0,0,0,0.04); color: rgba(0,0,0,0.25); }
+.badge-work { background: rgba(0,0,0,0.03); color: rgba(0,0,0,0.18); }
+
+.day-topic { font-size: 11px; font-weight: 500; line-height: 1.35; flex: 1; }
+.day-card.is-today .day-topic { color: rgba(255,255,255,0.88); }
+.day-hint { font-size: 10px; color: var(--muted-dark); line-height: 1.3; }
+.day-card.is-today .day-hint { color: rgba(255,255,255,0.38); }
+.day-note { font-size: 10px; color: var(--orange); }
+.day-cta { font-size: 10px; font-weight: 600; color: var(--muted-dark); margin-top: auto; }
+.day-card.is-today .day-cta { color: rgba(255,255,255,0.45); }
+
+/* TOPIC BANK */
+.topic-bank { display: flex; flex-wrap: wrap; gap: 6px; }
+.topic-chip {
+  font-size: 11px; font-weight: 500; color: var(--muted-dark);
+  background: rgba(0,0,0,0.05); padding: 5px 12px; border-radius: 20px;
+  border: 1px solid rgba(0,0,0,0.08); cursor: default; transition: all 0.15s;
+  line-height: 1;
+}
+.topic-chip:hover { background: rgba(0,0,0,0.1); color: var(--text-dark); }
+
+/* BOTTOM */
+.bottom-nav {
+  display: flex; align-items: center; gap: 24px;
+  color: rgba(255,255,255,0.3); font-size: 12px; font-weight: 400; padding: 8px 0 4px;
+}
+.bottom-nav a { color: rgba(255,255,255,0.3); text-decoration: none; transition: color 0.15s; }
+.bottom-nav a:hover { color: rgba(255,255,255,0.7); }
+.bottom-footer { font-size: 11px; color: rgba(255,255,255,0.18); padding-bottom: 16px; text-align: center; letter-spacing: 0.01em; }
+
+/* MODAL */
+.modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.72); z-index: 9999;
+  align-items: center; justify-content: center; padding: 20px;
+}
+.modal-overlay.open { display: flex; }
+.modal-box {
+  background: var(--card); border-radius: 24px; padding: 28px 30px;
+  width: 100%; max-width: 540px; max-height: 88vh; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.modal-box::-webkit-scrollbar { width: 3px; }
+.modal-box::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 2px; }
+
+.modal-hdr { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.modal-title { font-size: 17px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.25; flex: 1; }
+.modal-close {
+  width: 28px; height: 28px; border-radius: 8px; border: none;
+  background: rgba(0,0,0,0.07); cursor: pointer; font-size: 16px; color: var(--muted-dark);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  transition: background 0.15s;
+}
+.modal-close:hover { background: rgba(0,0,0,0.14); }
+
+.modal-meta { display: flex; gap: 8px; align-items: center; }
+.modal-badge-tag {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  background: rgba(0,0,0,0.08); color: var(--text-dark); padding: 3px 8px; border-radius: 6px;
+}
+.modal-dur { font-size: 11px; color: var(--muted-dark); }
+
+.modal-script {
+  background: rgba(0,0,0,0.04); border-radius: 14px; padding: 18px 20px;
+  font-size: 13px; line-height: 1.75; color: var(--text-dark);
+  white-space: pre-wrap;
+}
+.script-hook { font-weight: 600; }
+
+.modal-tip {
+  font-size: 11px; color: var(--muted-dark);
+  background: rgba(232,81,10,0.07); border-radius: 10px; padding: 10px 14px;
+  line-height: 1.5;
+}
+
+.modal-actions { display: flex; gap: 8px; }
+.copy-btn {
+  flex: 1; padding: 10px; background: var(--text-dark); color: white;
+  border: none; border-radius: 10px; cursor: pointer;
+  font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600;
+  transition: opacity 0.15s;
+}
+.copy-btn:hover { opacity: 0.8; }
+.close-btn {
+  padding: 10px 18px; background: rgba(0,0,0,0.07); color: var(--text-dark);
+  border: none; border-radius: 10px; cursor: pointer;
+  font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500;
+  transition: background 0.15s;
+}
+.close-btn:hover { background: rgba(0,0,0,0.14); }
+
+/* SCRIPTS LIST */
+.scripts-list { display: flex; flex-direction: column; gap: 4px; }
+.script-row {
+  display: flex; align-items: center; gap: 12px;
+  background: rgba(0,0,0,0.04); border-radius: 10px; padding: 10px 14px;
+  cursor: pointer; transition: background 0.15s;
+}
+.script-row:hover { background: rgba(0,0,0,0.09); }
+.script-row-num { font-size: 11px; font-weight: 600; color: var(--muted-dark); min-width: 18px; }
+.script-row-info { flex: 1; display: flex; align-items: center; gap: 10px; }
+.script-row-title { font-size: 13px; font-weight: 500; color: var(--text-dark); }
+.script-row-dur { font-size: 11px; color: var(--muted-dark); }
+.script-row-arrow { font-size: 12px; color: rgba(0,0,0,0.2); }
+
+/* TODAY */
+.today-card {
+  background: rgba(0,0,0,0.04); border-radius: 14px;
+  padding: 16px 18px; margin-top: 12px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.today-label { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted-dark); margin-bottom: 4px; }
+.today-topic { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; }
+.today-hint { font-size: 11px; color: var(--muted-dark); margin-top: 4px; }
+.today-btn {
+  padding: 10px 20px; background: var(--text-dark); color: white;
+  border: none; border-radius: 10px; cursor: pointer;
+  font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600;
+  white-space: nowrap; flex-shrink: 0; transition: opacity 0.15s;
+}
+.today-btn:hover { opacity: 0.75; }
+
+/* SYNC DOT */
+.sync-dot {
+  display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+  background: rgba(0,0,0,0.12); margin-left: 8px; vertical-align: middle;
+  transition: background 0.4s;
+}
+.sync-dot.syncing { background: #f59e0b; }
+.sync-dot.synced  { background: #22c55e; }
+.sync-dot.error   { background: #ef4444; }
+
+/* MOBILE */
+@media (max-width: 720px) {
+  .shell { padding: 16px 12px 20px; gap: 14px; }
+  .main-card { padding: 20px 16px; border-radius: 20px; }
+  .card-header { flex-direction: column; align-items: flex-start; gap: 8px; margin-bottom: 18px; }
+  .stats-row { grid-template-columns: 1fr 1fr; }
+  .stats-row .stat-mini:last-child { grid-column: span 2; }
+  .week-grid { grid-template-columns: repeat(4, 1fr); }
+  .modal-box { padding: 20px 18px; }
+  .today-card { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .today-btn { width: 100%; }
+  .today-topic { font-size: 15px; }
+}
+@media (max-width: 480px) {
+  .week-grid { grid-template-columns: repeat(2, 1fr); }
+  .day-card { min-height: 120px; padding: 10px 8px; }
+  .stats-row { grid-template-columns: 1fr; }
+  .stats-row .stat-mini:last-child { grid-column: span 1; }
+  .script-row-title { font-size: 12px; }
+}
+</style>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
+</head>
+<body>
+
+<div class="bg"><div class="bg-glow"></div></div>
+
+<div class="shell">
+<div class="main-card">
+
+  <!-- HEADER -->
+  <div class="card-header">
+    <div>
+      <div class="card-title">evilonside — контент<span class="sync-dot" id="syncDot" title="синхронизация"></span></div>
+      <div class="card-sub">май–июнь 2026 · 12 рилсов · 4 недели · 321 → 500</div>
+    </div>
+    <div class="card-date" id="dateDisplay"></div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-mini">
+      <div class="stat-mini-label">Рилсов снято</div>
+      <div class="stat-mini-val"><span id="reelsDone">0</span><span style="font-size:16px;font-weight:400;color:var(--muted-dark);">&thinsp;/ 12</span></div>
+      <div class="stat-mini-sub">план 3 в неделю</div>
+      <div class="prog"><div class="prog-fill" id="reelsBar" style="width:0%"></div></div>
+    </div>
+    <div class="stat-mini">
+      <div class="stat-mini-label">Подписчики</div>
+      <div class="stat-mini-val" id="followersVal">321</div>
+      <div class="stat-mini-sub">цель 500 к июлю</div>
+      <div class="prog"><div class="prog-fill" id="followersBar" style="width:0%"></div></div>
+      <div class="fol-inline">
+        <input type="number" id="folInput" placeholder="обновить...">
+        <button onclick="updateFollowers()">OK</button>
+      </div>
+    </div>
+    <div class="stat-mini">
+      <div class="stat-mini-label">Неделя</div>
+      <div class="stat-mini-val"><span id="weekNum">1</span><span style="font-size:16px;font-weight:400;color:var(--muted-dark);">&thinsp;/ 4</span></div>
+      <div class="stat-mini-sub" id="weekRange"></div>
+    </div>
+  </div>
+
+  <div id="todayCard" class="today-card"></div>
+
+  <div class="divider"></div>
+
+  <!-- WEEK NAV -->
+  <div class="week-nav">
+    <button class="week-nav-btn" id="prevBtn" onclick="changeWeek(-1)">← назад</button>
+    <div class="week-nav-label" id="weekLabel"></div>
+    <button class="week-nav-btn" id="nextBtn" onclick="changeWeek(1)">вперёд →</button>
+  </div>
+
+  <!-- WEEK GRID -->
+  <div class="week-grid" id="weekGrid"></div>
+
+  <div class="divider"></div>
+
+  <!-- TOPIC BANK -->
+  <div class="sec-label">банк тем — следующие рилсы</div>
+  <div class="topic-bank" id="topicBank"></div>
+
+  <div class="divider"></div>
+
+  <!-- SCRIPTS LIST -->
+  <div class="sec-label">все скрипты</div>
+  <div id="scriptsList"></div>
+
+</div>
+
+<nav class="bottom-nav">
+  <a href="../дашборд планер/dashboard.html">Дашборд</a>
+  <a href="#">Контент</a>
+  <a href="#">Финансы</a>
+  <a href="#">Съёмки</a>
+</nav>
+<div class="bottom-footer">@evilonside &nbsp;·&nbsp; Краснодар, 2026 &nbsp;·&nbsp; Sony a7III</div>
+</div>
+
+<!-- SCRIPT MODAL -->
+<div class="modal-overlay" id="scriptModal" onclick="handleOverlayClick(event)">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-hdr">
+      <div class="modal-title" id="modalTitle"></div>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-meta">
+      <span class="modal-badge-tag">РИЛС</span>
+      <span class="modal-dur" id="modalDur"></span>
+    </div>
+    <div class="modal-script" id="modalScript"></div>
+    <div class="modal-tip" id="modalTip" style="display:none;"></div>
+    <div class="modal-actions">
+      <button class="copy-btn" id="copyBtn" onclick="copyScript()">Скопировать</button>
+      <button class="close-btn" onclick="closeModal()">Закрыть</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── SCRIPTS ────────────────────────────────────────────────────────────────
+
+const SCRIPTS = {
+  1: {
+    title: 'Синдром самозванца',
+    dur: '~35 сек',
+    text: `Я каждый раз перед тем как отправить фото — смотрю на него минут пять и нахожу косяки. Всегда. Даже в работах которые нравятся.
+
+Думал, это пройдёт когда будет больше опыта. Сделаю ещё сотню работ — и успокоюсь. Не прошло. Просто теперь другие косяки замечаю.
+
+Короче, понял одно: ждать когда станет нормально — не дождёшься. Можно либо ждать, либо отправлять пока страшно. Я выбрал второе.
+
+Пока.`,
+  },
+  2: {
+    title: 'Паттерн избегания',
+    dur: '~35 сек',
+    text: `Надо записать рилс — иду убираться. Надо написать клиенту — открываю Лайтрум перебирать папки. Надо выложить работу — сижу смотрю ютуб.
+
+Самое бесячее: при этом чувствуешь себя занятым. Вроде делаешь дела. Только не те.
+
+Мне помогло одно простое правило — важное первым. Прямо с утра. Не «потом», не «после зала». Сначала то что откладывал.
+
+Работает. Не идеально, но работает.`,
+  },
+  3: {
+    title: 'Первая выставка в Москве',
+    dur: '~40 сек',
+    text: `27 февраля у меня была первая выставка. В Москве. Мои работы на реальных стенах, люди подходят, смотрят.
+
+До этого всё было в телефоне — лайкнули, не лайкнули, ну и ладно. На выставке стоишь рядом с работой и видишь как человек её разглядывает. Никакого буфера.
+
+Страшно было не потому что что-то пойдёт не так. А потому что это вдруг стало по-настоящему.
+
+После этого вопрос «а стоит ли выкладывать» стал как-то глупее звучать.
+
+Пока.`,
+  },
+  4: {
+    title: 'Страх показать работу',
+    dur: '~35 сек',
+    text: `У меня в архиве фотографии которым уже год. Хорошие фотографии. Просто не выложил ни одну.
+
+Смотришь на работу — видишь всё что не так. Другой свет, другой момент, другое всё. Потом смотришь на чужое — и сравниваешь. Только сравниваешь своё сырое с их финальным. Нечестное сравнение.
+
+Пока фото в архиве — его нет. Когда выкладываешь — оно начинает существовать.
+
+Страх никуда не уходит. Просто начинаешь его игнорировать.`,
+  },
+  5: {
+    title: 'Работа стоит дороже',
+    dur: '~35 сек',
+    text: `Я брал три тысячи за съёмку. Долго. Не потому что думал это рыночная цена — просто боялся сказать больше.
+
+Поднял до пяти. Первый клиент согласился сразу, без вопросов. Я немного завис.
+
+Понял простую вещь: цену ставишь не по рынку, а из того что думаешь о себе. Если все соглашаются без вопросов — занижаешь.
+
+Сейчас пять, поднимаю дальше.`,
+    tip: 'После этого рилса — мягкий анонс записи в сторис: «если интересно снять — пиши в директ»',
+  },
+  6: {
+    title: 'Реквизит в портрете',
+    dur: '~40 сек',
+    text: `Спрашивают: зачем предметы на фото? Зеркала, ткани, всякое. Это театр?
+
+Нет. Я снимаю людей в движении — прыжки, полёт. И предмет в кадре — это не декорация. Это второй персонаж. Он даёт зрителю что-то додумать самому.
+
+Без реквизита — красивый портрет. С реквизитом — история.
+
+Начинал с куска ткани и зеркала. Дешевле некуда. Разница в работах — огромная.
+
+Всём пока.`,
+  },
+  7: {
+    title: 'Незаметная жизнь',
+    dur: '~35 сек',
+    text: `Я провала не боюсь. Провал — конкретно. Попробовал, облажался, понял где. Нормально.
+
+Боюсь другого. Что пройду мимо себя тихо. Ничего не попробую, ни на что не решусь. В 60 буду объяснять себе почему не попробовал.
+
+Вот это страшно.
+
+Этот страх — единственный нормальный двигатель который у меня есть.`,
+  },
+  8: {
+    title: 'Переезд изменил взгляд',
+    dur: '~40 сек',
+    text: `Я из деревни. 443 километра от Иркутска. Когда живёшь в одном месте всю жизнь — перестаёшь его видеть. Буквально. Улицы, люди, свет — всё в слепом пятне.
+
+Переехал в Краснодар — и первые месяца три снимал как будто впервые открылись глаза. Лучше любого курса.
+
+Не говорю что нужно переезжать. Иногда хватает просто пойти в другую сторону от дома. Новое место включает взгляд.
+
+Всё.`,
+  },
+  9: {
+    title: 'Деньги как свобода',
+    dur: '~30 сек',
+    text: `Я не хочу быть богатым. Хочу просто никогда не выбирать между тем что нравится и тем что могу себе позволить.
+
+Работаю бариста. Чётко понимаю зачем — дотянуть до точки когда фотография закроет этот вопрос. Просто нужно время.
+
+Деньги — это не цель. Это время. Купленное на то что важно.
+
+Пока.`,
+  },
+  10: {
+    title: 'Фото vs стабильность',
+    dur: '~40 сек',
+    text: `Мне 22. Работаю бариста 2/2. Параллельно строю фотографию. Многие спрашивают — зачем, если есть нормальная работа.
+
+Я задал себе один вопрос: если через десять лет ничего не изменится — я буду в порядке? Честно — нет. Не потому что работа плохая. А потому что это не то, ради чего я встаю.
+
+Риски есть. Гарантий нет. Но хотя бы двигаюсь в ту сторону которую сам выбрал.
+
+Всём пока.`,
+  },
+  11: {
+    title: 'Плёнка vs цифра',
+    dur: '~35 сек',
+    text: `Снимаю и на плёнку и на цифру. Это не про ностальгию.
+
+Цифра — можешь снять тысячу кадров за день. И снимаешь. Просто нажимаешь и нажимаешь. Плёнка — 36 кадров. Каждый реально стоит денег. Начинаешь думать прежде чем нажать.
+
+После плёнки возвращаешься к цифре и уже не поливаешь всё подряд.
+
+Для меня плёнка — тренировка. Не эстетика.`,
+  },
+  12: {
+    title: 'Личный бренд с нуля',
+    dur: '~35 сек',
+    text: `Когда начинал вести инсту как фотограф — у меня было 200 подписчиков. Одноклассники, пара знакомых, несколько случайных.
+
+Думал нужно что-то особенное. Вирусное видео, коллаб, правильный хэштег. Нет. Нужно просто продолжать появляться. Регулярно. С работами, с мыслями, со своей жизнью.
+
+Сейчас чуть больше трёхсот. Я в самом начале. Но хотя бы не останавливаюсь.
+
+Пока.`,
+  },
+};
+
+// ── WEEKS ─────────────────────────────────────────────────────────────────
+
+const WEEKS = [
+  {
+    label: '18–24 мая',
+    days: [
+      { date: '2026-05-18', name: 'пн', num: 18, type: 'reels',  topic: 'Синдром самозванца',    scriptId: 1 },
+      { date: '2026-05-19', name: 'вт', num: 19, type: 'life',   topic: 'Лайф сторис',          hint: 'зал, кофе, утро' },
+      { date: '2026-05-20', name: 'ср', num: 20, type: 'work',   topic: 'Рабочий день' },
+      { date: '2026-05-21', name: 'чт', num: 21, type: 'reels',  topic: 'Паттерн избегания',     scriptId: 2, hint: 'выложить сегодня' },
+      { date: '2026-05-22', name: 'пт', num: 22, type: 'reels',  topic: 'Первая выставка',       scriptId: 3 },
+      { date: '2026-05-23', name: 'сб', num: 23, type: 'life',   topic: 'Лайф сторис',          hint: 'вечер, прогулка' },
+      { date: '2026-05-24', name: 'вс', num: 24, type: 'work',   topic: 'Рабочий день' },
+    ]
+  },
+  {
+    label: '25–31 мая',
+    days: [
+      { date: '2026-05-25', name: 'пн', num: 25, type: 'work',   topic: 'Рабочий день' },
+      { date: '2026-05-26', name: 'вт', num: 26, type: 'reels',  topic: 'Страх показать работу', scriptId: 4 },
+      { date: '2026-05-27', name: 'ср', num: 27, type: 'life',   topic: 'Лайф сторис',          hint: 'тренировка, обработка' },
+      { date: '2026-05-28', name: 'чт', num: 28, type: 'reels',  topic: 'Работа стоит дороже',  scriptId: 5, hint: 'выложить сегодня', note: '+ анонс записи' },
+      { date: '2026-05-29', name: 'пт', num: 29, type: 'work',   topic: 'Рабочий день' },
+      { date: '2026-05-30', name: 'сб', num: 30, type: 'reels',  topic: 'Реквизит в портрете',  scriptId: 6 },
+      { date: '2026-05-31', name: 'вс', num: 31, type: 'rest',   topic: 'Итоги мая',            hint: 'пост или сторис с итогами' },
+    ]
+  },
+  {
+    label: '1–7 июня',
+    days: [
+      { date: '2026-06-01', name: 'пн', num: 1,  type: 'work',   topic: 'Рабочий день' },
+      { date: '2026-06-02', name: 'вт', num: 2,  type: 'reels',  topic: 'Незаметная жизнь',     scriptId: 7, hint: 'выложить сегодня' },
+      { date: '2026-06-03', name: 'ср', num: 3,  type: 'reels',  topic: 'Переезд изменил взгляд', scriptId: 8 },
+      { date: '2026-06-04', name: 'чт', num: 4,  type: 'life',   topic: 'Лайф сторис',          hint: 'зал, процесс съёмки' },
+      { date: '2026-06-05', name: 'пт', num: 5,  type: 'sell',   topic: 'Анонс съёмок',         hint: 'крючок → работы → цена → директ' },
+      { date: '2026-06-06', name: 'сб', num: 6,  type: 'sell',   topic: 'Запись на съёмки',     hint: 'кейсы + цена + ссылка 3–4 раза' },
+      { date: '2026-06-07', name: 'вс', num: 7,  type: 'reels',  topic: 'Деньги как свобода',   scriptId: 9 },
+    ]
+  },
+  {
+    label: '8–14 июня',
+    days: [
+      { date: '2026-06-08', name: 'пн', num: 8,  type: 'life',   topic: 'Лайф сторис',          hint: 'после продаж — восстановить охваты' },
+      { date: '2026-06-09', name: 'вт', num: 9,  type: 'reels',  topic: 'Фото vs стабильность', scriptId: 10, hint: 'выложить сегодня' },
+      { date: '2026-06-10', name: 'ср', num: 10, type: 'work',   topic: 'Рабочий день' },
+      { date: '2026-06-11', name: 'чт', num: 11, type: 'reels',  topic: 'Плёнка vs цифра',      scriptId: 11 },
+      { date: '2026-06-12', name: 'пт', num: 12, type: 'life',   topic: 'Лайф сторис',          hint: 'выходные, прогулка, Лера' },
+      { date: '2026-06-13', name: 'сб', num: 13, type: 'work',   topic: 'Рабочий день' },
+      { date: '2026-06-14', name: 'вс', num: 14, type: 'reels',  topic: 'Личный бренд с нуля',  scriptId: 12, hint: 'выложить сегодня' },
+    ]
+  },
+];
+
+const TOPIC_BANK = [
+  'Как я нахожу локацию (без романтики)',
+  'Минимализм и хаос в одном кадре',
+  'Почему я не снимал месяц',
+  'Как страх ошибки тормозит сильнее конкурента',
+  'Как нашёл свой жанр — это заняло не год',
+  'Что значит иметь свой визуальный язык',
+  'Перестал ждать правильного момента',
+  'Что сказал бы себе 5 лет назад',
+  'Почему строю жизнь чтобы не жалеть в 60',
+  'Конкуренция как вдохновение',
+  'Как бросил курить — и при чём тут фото',
+];
+
+// ── STATE ─────────────────────────────────────────────────────────────────
+
+function ls(k, d) { try { const v = localStorage.getItem(k); return v !== null ? JSON.parse(v) : d; } catch { return d; } }
+function ss(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
+function todayStr() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+
+// ── FIREBASE ──────────────────────────────────────────────────────────────
+// 1. Создай проект на console.firebase.google.com
+// 2. Project Settings → Your apps → Add web app → скопируй firebaseConfig
+// 3. В Realtime Database → Rules → поставь: ".read": true, ".write": true
+// 4. Замени значения ниже на свои
+
+const FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyAymJtVlcvdqxOceRnzgtSj8zsDKAd2XW4",
+  authDomain:        "evilonside-content.firebaseapp.com",
+  databaseURL:       "https://evilonside-content-default-rtdb.firebaseio.com",
+  projectId:         "evilonside-content",
+  storageBucket:     "evilonside-content.firebasestorage.app",
+  messagingSenderId: "585118885238",
+  appId:             "1:585118885238:web:d8476a2239afcf022bc657"
+};
+
+let _db = null;
+
+function _syncDot(state) {
+  const el = document.getElementById('syncDot');
+  if (el) el.className = 'sync-dot' + (state ? ' ' + state : '');
+}
+
+(function() {
+  try {
+    if (!FIREBASE_CONFIG.apiKey) return;
+    firebase.initializeApp(FIREBASE_CONFIG);
+    _db = firebase.database();
+    _syncDot('syncing');
+
+    _db.ref('cm/done').on('value', snap => {
+      const val = snap.val() || {};
+      ss('content_done', val);
+      renderWeek();
+      _syncDot('synced');
+    });
+
+    _db.ref('cm/followers').on('value', snap => {
+      const val = snap.val();
+      if (val !== null && val !== undefined) {
+        ss('followers_current', val);
+        renderFollowers();
+      }
+    });
+  } catch(e) {
+    _syncDot('error');
+    console.warn('Firebase:', e);
+  }
+})();
+
+function _push(path, value) {
+  if (!_db) return;
+  _syncDot('syncing');
+  _db.ref(path).set(value)
+    .then(() => _syncDot('synced'))
+    .catch(() => _syncDot('error'));
+}
+
+let currentWeekIdx = 0;
+let currentScriptText = '';
+
+function autoDetectWeek() {
+  const t = todayStr();
+  for (let i = 0; i < WEEKS.length; i++) {
+    const days = WEEKS[i].days;
+    if (days.some(d => d.date >= t)) return i;
+  }
+  return WEEKS.length - 1;
+}
+
+currentWeekIdx = ls('content_week', autoDetectWeek());
+
+// ── DATE DISPLAY ──────────────────────────────────────────────────────────
+
+(function() {
+  const days = ['вс','пн','вт','ср','чт','пт','сб'];
+  const months = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+  const d = new Date();
+  document.getElementById('dateDisplay').textContent = `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]}`;
+})();
+
+// ── FOLLOWERS ─────────────────────────────────────────────────────────────
+
+function renderFollowers() {
+  const cur = ls('followers_current', 321);
+  document.getElementById('followersVal').textContent = cur.toLocaleString('ru');
+  const pct = Math.max(0, Math.min(100, Math.round((cur - 321) / (500 - 321) * 100)));
+  document.getElementById('followersBar').style.width = pct + '%';
+}
+function updateFollowers() {
+  const v = parseInt(document.getElementById('folInput').value);
+  if (!v || v < 0) return;
+  ss('followers_current', v);
+  document.getElementById('folInput').value = '';
+  renderFollowers();
+  _push('cm/followers', v);
+}
+renderFollowers();
+
+// ── TODAY ─────────────────────────────────────────────────────────────────
+
+function renderToday() {
+  const today = todayStr();
+  const card = document.getElementById('todayCard');
+  let found = null;
+  for (const week of WEEKS) {
+    for (const d of week.days) { if (d.date === today) { found = d; break; } }
+    if (found) break;
+  }
+  if (!found) { card.style.display = 'none'; return; }
+
+  const LABELS = { reels: 'РИЛС', life: 'ЛАЙФ', sell: 'ПРОДАЖИ', stories: 'СТОРИС', rest: 'ОТДЫХ', work: 'РАБОТА' };
+  const hasScript = found.type === 'reels' && found.scriptId;
+  const hint = found.hint ? `<div class="today-hint">${found.hint}</div>` : '';
+  const btn = hasScript
+    ? `<button class="today-btn" onclick="openScript(${found.scriptId})">Открыть скрипт</button>`
+    : '';
+
+  card.innerHTML = `<div>
+    <div class="today-label">Сегодня · ${LABELS[found.type] || ''}</div>
+    <div class="today-topic">${found.topic}</div>
+    ${hint}
+  </div>${btn}`;
+}
+renderToday();
+
+// ── REELS COUNTER ─────────────────────────────────────────────────────────
+
+function countReelsDone() {
+  const done = ls('content_done', {});
+  let n = 0;
+  WEEKS.forEach(w => w.days.forEach(d => { if (d.type === 'reels' && done[d.date]) n++; }));
+  return n;
+}
+function renderReelsStats() {
+  const n = countReelsDone();
+  document.getElementById('reelsDone').textContent = n;
+  document.getElementById('reelsBar').style.width = Math.min(100, Math.round(n / 12 * 100)) + '%';
+}
+
+// ── WEEK RENDER ───────────────────────────────────────────────────────────
+
+function changeWeek(delta) {
+  currentWeekIdx = Math.max(0, Math.min(WEEKS.length - 1, currentWeekIdx + delta));
+  ss('content_week', currentWeekIdx);
+  renderWeek();
+}
+
+function renderWeek() {
+  const week = WEEKS[currentWeekIdx];
+  document.getElementById('weekLabel').textContent = week.label;
+  document.getElementById('weekNum').textContent = currentWeekIdx + 1;
+  document.getElementById('weekRange').textContent = week.label;
+  document.getElementById('prevBtn').disabled = currentWeekIdx === 0;
+  document.getElementById('nextBtn').disabled = currentWeekIdx === WEEKS.length - 1;
+
+  const done = ls('content_done', {});
+  const today = todayStr();
+
+  const BADGE = { reels: ['badge-reels','РИЛС'], life: ['badge-life','ЛАЙФ'], sell: ['badge-sell','ПРОДАЖИ'], stories: ['badge-stories','СТОРИС'], rest: ['badge-rest','ОТДЫХ'], work: ['badge-work','РАБОТА'] };
+
+  const html = week.days.map(d => {
+    const isToday = d.date === today;
+    const isDone = !!done[d.date];
+    const hasScript = d.type === 'reels' && d.scriptId;
+    const [badgeCls, badgeTxt] = BADGE[d.type] || ['badge-life',''];
+
+    return `<div class="day-card${isToday ? ' is-today' : ''}${isDone ? ' is-done' : ''}${hasScript ? ' clickable' : ''}"
+      ${hasScript ? `onclick="openScript(${d.scriptId})"` : ''}>
+      <button class="done-toggle" onclick="toggleDone(event,'${d.date}')">✓</button>
+      <div class="day-hdr">
+        <span class="day-name">${d.name}</span>
+        <span class="day-num">${d.num}</span>
+      </div>
+      <div class="day-badge ${badgeCls}">${badgeTxt}</div>
+      <div class="day-topic">${d.topic}</div>
+      ${d.hint ? `<div class="day-hint">${d.hint}</div>` : ''}
+      ${d.note ? `<div class="day-note">${d.note}</div>` : ''}
+      ${hasScript ? `<div class="day-cta">скрипт →</div>` : ''}
+    </div>`;
+  }).join('');
+
+  document.getElementById('weekGrid').innerHTML = html;
+  renderReelsStats();
+}
+
+function toggleDone(e, date) {
+  e.stopPropagation();
+  const done = ls('content_done', {});
+  done[date] = !done[date];
+  ss('content_done', done);
+  renderWeek();
+  _push('cm/done', done);
+}
+
+renderWeek();
+
+// ── TOPIC BANK ────────────────────────────────────────────────────────────
+
+document.getElementById('topicBank').innerHTML = TOPIC_BANK.map(t =>
+  `<span class="topic-chip">${t}</span>`
+).join('');
+
+document.getElementById('scriptsList').innerHTML = '<div class="scripts-list">' +
+  Object.entries(SCRIPTS).map(([id, s]) =>
+    `<div class="script-row" onclick="openScript(${id})">
+      <span class="script-row-num">${String(id).padStart(2,'0')}</span>
+      <div class="script-row-info">
+        <span class="script-row-title">${s.title}</span>
+        <span class="script-row-dur">${s.dur}</span>
+      </div>
+      <span class="script-row-arrow">→</span>
+    </div>`
+  ).join('') + '</div>';
+
+// ── MODAL ─────────────────────────────────────────────────────────────────
+
+function openScript(id) {
+  const s = SCRIPTS[id];
+  if (!s) return;
+  currentScriptText = s.text;
+  document.getElementById('modalTitle').textContent = s.title;
+  document.getElementById('modalDur').textContent = s.dur;
+
+  const lines = s.text.split('\n');
+  const hook = lines[0];
+  const body = lines.slice(1).join('\n');
+  document.getElementById('modalScript').innerHTML =
+    `<span class="script-hook">${hook}</span>` + (body ? '\n' + body : '');
+
+  const tipEl = document.getElementById('modalTip');
+  if (s.tip) { tipEl.textContent = s.tip; tipEl.style.display = 'block'; }
+  else { tipEl.style.display = 'none'; }
+
+  document.getElementById('copyBtn').textContent = 'Скопировать';
+  document.getElementById('scriptModal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('scriptModal').classList.remove('open');
+}
+
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('scriptModal')) closeModal();
+}
+
+function copyScript() {
+  const btn = document.getElementById('copyBtn');
+  const done = () => { btn.textContent = 'Скопировано ✓'; setTimeout(() => btn.textContent = 'Скопировать', 2500); };
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(currentScriptText).then(done).catch(fallback);
+  } else { fallback(); }
+  function fallback() {
+    const ta = document.createElement('textarea');
+    ta.value = currentScriptText; document.body.appendChild(ta);
+    ta.select(); try { document.execCommand('copy'); done(); } catch {}
+    document.body.removeChild(ta);
+  }
+}
+
+// ── SWIPE WEEK ────────────────────────────────────────────────────────────
+(function() {
+  let sx = 0, sy = 0;
+  const grid = document.getElementById('weekGrid');
+  grid.addEventListener('touchstart', e => {
+    sx = e.touches[0].clientX; sy = e.touches[0].clientY;
+  }, { passive: true });
+  grid.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - sx;
+    const dy = e.changedTouches[0].clientY - sy;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) changeWeek(dx < 0 ? 1 : -1);
+  });
+})();
+</script>
+</body>
+</html>
