@@ -963,8 +963,9 @@ currentWeekIdx = ls('content_week', autoDetectWeek());
 
 function countReelsDone() {
   const done = ls('content_done', {});
+  const today = todayStr();
   let n = 0;
-  WEEKS.forEach(w => w.days.forEach(d => { if (d.type === 'reels' && done[d.date]) n++; }));
+  WEEKS.forEach(w => w.days.forEach(d => { if (d.type === 'reels' && done[d.date] && d.date <= today) n++; }));
   return n;
 }
 function renderReelsStats() {
