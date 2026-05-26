@@ -531,30 +531,6 @@ html, body { width: 100%; min-height: 100vh; background: var(--black); font-fami
 
   <!-- ═══ TAB: КОНТЕНТ ═══ -->
   <div id="tab-content" style="display:none">
-    <div class="stats-row">
-      <div class="stat-mini">
-        <div class="stat-mini-label">Рилсов снято</div>
-        <div class="stat-mini-val"><span id="reelsDone">0</span><span style="font-size:16px;font-weight:400;color:var(--muted-dark);">&thinsp;/ 12</span></div>
-        <div class="stat-mini-sub">план 3 в неделю</div>
-        <div class="prog"><div class="prog-fill" id="reelsBar" style="width:0%"></div></div>
-      </div>
-      <div class="stat-mini">
-        <div class="stat-mini-label">Подписчики</div>
-        <div class="stat-mini-val" id="followersVal">321</div>
-        <div class="stat-mini-sub">цель 500 к июлю</div>
-        <div class="prog"><div class="prog-fill" id="followersBar" style="width:0%"></div></div>
-        <div class="fol-inline">
-          <input type="number" id="folInput" placeholder="обновить...">
-          <button onclick="updateFollowers()">OK</button>
-        </div>
-      </div>
-      <div class="stat-mini">
-        <div class="stat-mini-label">Неделя</div>
-        <div class="stat-mini-val"><span id="weekNum">1</span><span style="font-size:16px;font-weight:400;color:var(--muted-dark);">&thinsp;/ 4</span></div>
-        <div class="stat-mini-sub" id="weekRange"></div>
-      </div>
-    </div>
-    <div class="divider"></div>
     <div class="week-nav">
       <button class="week-nav-btn" id="prevBtn" onclick="changeWeek(-1)">← назад</button>
       <div class="week-nav-label" id="weekLabel"></div>
@@ -571,25 +547,6 @@ html, body { width: 100%; min-height: 100vh; background: var(--black); font-fami
 
   <!-- ═══ TAB: ФОТО ═══ -->
   <div id="tab-photo" style="display:none">
-    <div class="stats-row">
-      <div class="stat-mini">
-        <div class="stat-mini-label">Заработано всего</div>
-        <div class="stat-mini-val" id="photoTotal">0 ₽</div>
-        <div class="stat-mini-sub" id="photoTotalSub">съёмок: 0</div>
-      </div>
-      <div class="stat-mini">
-        <div class="stat-mini-label">В этом месяце</div>
-        <div class="stat-mini-val" id="photoMonth">0 ₽</div>
-        <div class="stat-mini-sub" id="photoMonthSub">съёмок: 0</div>
-      </div>
-      <div class="stat-mini">
-        <div class="stat-mini-label">Средний чек</div>
-        <div class="stat-mini-val" id="photoAvg">—</div>
-        <div class="stat-mini-sub" id="photoAvgSub">цель 15 000 ₽</div>
-        <div class="prog"><div class="prog-fill" id="photoAvgBar" style="width:0%"></div></div>
-      </div>
-    </div>
-    <div class="divider"></div>
     <div class="sec-label">добавить съёмку</div>
     <div class="shoot-form">
       <input type="date" id="shootDate" class="f-date">
@@ -676,7 +633,7 @@ html, body { width: 100%; min-height: 100vh; background: var(--black); font-fami
       <div class="stat-mini">
         <div class="stat-mini-label">Средний чек</div>
         <div class="stat-mini-val" id="statsAvg">—</div>
-        <div class="stat-mini-sub">цель 15 000 ₽</div>
+        <div class="stat-mini-sub" id="statsAvgSub">цель 15 000 ₽</div>
         <div class="prog"><div class="prog-fill" id="statsAvgBar" style="width:0%"></div></div>
       </div>
     </div>
@@ -1010,9 +967,9 @@ updateCardSub();
 // ── FOLLOWERS ─────────────────────────────────────────────────────────────────
 function renderFollowers() {
   const cur = ls('followers_current', 321);
-  document.getElementById('followersVal').textContent = cur.toLocaleString('ru');
-  document.getElementById('followersBar').style.width =
-    Math.max(0, Math.min(100, Math.round((cur - 321) / (500 - 321) * 100))) + '%';
+  const el = document.getElementById('followersVal'); if (el) el.textContent = cur.toLocaleString('ru');
+  const bar = document.getElementById('followersBar');
+  if (bar) bar.style.width = Math.max(0, Math.min(100, Math.round((cur - 321) / (500 - 321) * 100))) + '%';
 }
 function updateFollowers() {
   const v = parseInt(document.getElementById('folInput').value);
@@ -1190,8 +1147,8 @@ function countReelsDone() {
 }
 function renderReelsStats() {
   const n = countReelsDone();
-  document.getElementById('reelsDone').textContent = n;
-  document.getElementById('reelsBar').style.width = Math.min(100, Math.round(n / 12 * 100)) + '%';
+  const el = document.getElementById('reelsDone'); if (el) el.textContent = n;
+  const bar = document.getElementById('reelsBar'); if (bar) bar.style.width = Math.min(100, Math.round(n / 12 * 100)) + '%';
 }
 function changeWeek(delta) {
   currentWeekIdx = Math.max(0, Math.min(WEEKS.length - 1, currentWeekIdx + delta));
@@ -1200,8 +1157,8 @@ function changeWeek(delta) {
 function renderWeek() {
   const week = WEEKS[currentWeekIdx];
   document.getElementById('weekLabel').textContent = week.label;
-  document.getElementById('weekNum').textContent   = currentWeekIdx + 1;
-  document.getElementById('weekRange').textContent = week.label;
+  const wn = document.getElementById('weekNum'); if (wn) wn.textContent = currentWeekIdx + 1;
+  const wr = document.getElementById('weekRange'); if (wr) wr.textContent = week.label;
   document.getElementById('prevBtn').disabled = currentWeekIdx === 0;
   document.getElementById('nextBtn').disabled = currentWeekIdx === WEEKS.length - 1;
   const done  = ls('content_done', {});
@@ -1251,26 +1208,7 @@ function getAvgShoot() {
   return Math.round(base.reduce((s, sh) => s + (sh.amount||0), 0) / base.length);
 }
 
-function renderPhotoStats() {
-  const all = Object.values(getShoots());
-  const total = all.reduce((s, sh) => s + (sh.amount||0), 0);
-  const now = new Date();
-  const mon = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-  const mItems = all.filter(sh => sh.date && sh.date.startsWith(mon));
-  const mTotal = mItems.reduce((s, sh) => s + (sh.amount||0), 0);
-  const commItems = all.filter(sh => sh.commercial === true);
-  const avg = commItems.length ? Math.round(commItems.reduce((s, sh) => s + (sh.amount||0), 0) / commItems.length)
-            : (all.length ? Math.round(total / all.length) : 0);
-  document.getElementById('photoTotal').textContent    = total ? rub(total) : '0 ₽';
-  document.getElementById('photoTotalSub').textContent = `съёмок: ${all.length}`;
-  document.getElementById('photoMonth').textContent    = mTotal ? rub(mTotal) : '0 ₽';
-  document.getElementById('photoMonthSub').textContent = `съёмок: ${mItems.length}`;
-  document.getElementById('photoAvg').textContent      = avg ? rub(avg) : '—';
-  document.getElementById('photoAvgBar').style.width   = Math.min(100, Math.round(avg / 15000 * 100)) + '%';
-  document.getElementById('photoAvgSub').textContent   = commItems.length > 0
-    ? `${commItems.length} коммерч. съёмок`
-    : 'цель 15 000 ₽';
-}
+function renderPhotoStats() { renderStats(); }
 function renderShootsList() {
   const shoots = getShoots();
   const items = Object.entries(shoots).sort((a, b) => b[1].date.localeCompare(a[1].date));
@@ -1440,6 +1378,8 @@ function renderStats() {
   if (aEl) aEl.textContent = avg ? rub(avg) : '—';
   const aBar = document.getElementById('statsAvgBar');
   if (aBar) aBar.style.width = Math.min(100, Math.round(avg / 15000 * 100)) + '%';
+  const aSub = document.getElementById('statsAvgSub');
+  if (aSub) aSub.textContent = commItems.length > 0 ? `${commItems.length} коммерч. съёмок` : 'цель 15 000 ₽';
 }
 
 function updateFollowersFromStats() {
