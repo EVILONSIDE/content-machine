@@ -362,30 +362,6 @@ html, body { width: 100%; min-height: 100vh; background: var(--black); font-fami
 .shoot-del:hover { color: #ef4444; background: rgba(239,68,68,0.07); }
 .empty-state { text-align: center; padding: 24px 0; font-size: 13px; color: var(--muted-dark); }
 
-/* FINANCIAL PLAN */
-.fin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-.fin-inp label { display: block; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-dark); margin-bottom: 5px; }
-.fin-inp input {
-  width: 100%; background: rgba(0,0,0,0.04); border: 1.5px solid rgba(0,0,0,0.08);
-  border-radius: 10px; padding: 9px 12px; font-family: 'Inter'; font-size: 14px;
-  color: var(--text-dark); outline: none; transition: border-color 0.15s;
-}
-.fin-inp input:focus { border-color: rgba(0,0,0,0.2); }
-.fin-result {
-  margin-top: 14px; padding: 16px 18px; background: rgba(0,0,0,0.04);
-  border-radius: 14px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;
-}
-.fin-col { text-align: center; }
-.fin-col-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-dark); margin-bottom: 4px; }
-.fin-col-val { font-size: 22px; font-weight: 700; letter-spacing: -0.03em; }
-.fin-col-val.positive { color: #22c55e; }
-.fin-col-val.negative { color: #ef4444; }
-.fin-save-btn {
-  margin-top: 10px; padding: 9px 20px; background: var(--text-dark); color: white;
-  border: none; border-radius: 10px; cursor: pointer;
-  font-family: 'Inter'; font-size: 13px; font-weight: 600; transition: opacity 0.15s;
-}
-.fin-save-btn:hover { opacity: 0.75; }
 
 /* GOALS */
 .goal-item { padding: 14px 16px; background: rgba(0,0,0,0.04); border-radius: 12px; margin-bottom: 8px; }
@@ -487,7 +463,6 @@ html, body { width: 100%; min-height: 100vh; background: var(--black); font-fami
   .goal-add-form { flex-direction: column; }
   .goal-add-form input { width: 100% !important; }
   .tab-btn { font-size: 11px; padding: 7px 2px; }
-  .fin-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 480px) {
   .week-grid { grid-template-columns: repeat(2, 1fr); }
@@ -495,7 +470,6 @@ html, body { width: 100%; min-height: 100vh; background: var(--black); font-fami
   .stats-row { grid-template-columns: 1fr; }
   .stats-row .stat-mini:last-child { grid-column: span 1; }
   .script-row-title { font-size: 12px; }
-  .fin-result { grid-template-columns: 1fr; gap: 8px; }
   .wstrip-day-name { font-size: 8px; }
 }
 </style>
@@ -636,28 +610,6 @@ html, body { width: 100%; min-height: 100vh; background: var(--black); font-fami
     <div class="sec-label">история съёмок</div>
     <div id="shootsList" class="shoots-list"></div>
 
-    <div class="divider"></div>
-    <div class="sec-label">финансовый план</div>
-    <div class="fin-grid">
-      <div class="fin-inp">
-        <label>Доход в месяц (₽)</label>
-        <input type="number" id="finIncome" placeholder="75000" oninput="updateFinResult()">
-      </div>
-      <div class="fin-inp">
-        <label>Аренда (₽)</label>
-        <input type="number" id="finRent" placeholder="15000" oninput="updateFinResult()">
-      </div>
-      <div class="fin-inp">
-        <label>Кредиты и обязательные (₽)</label>
-        <input type="number" id="finFixed" placeholder="5890" oninput="updateFinResult()">
-      </div>
-      <div class="fin-inp">
-        <label>Откладывать в месяц (₽)</label>
-        <input type="number" id="finSavings" placeholder="10000" oninput="updateFinResult()">
-      </div>
-    </div>
-    <div id="finResult" class="fin-result"></div>
-    <button class="fin-save-btn" id="finSaveBtn" onclick="saveFinPlan()">Сохранить план</button>
   </div>
 
   <!-- ═══ TAB: ЗАМЕТКИ ═══ -->
@@ -1018,9 +970,6 @@ function _syncDot(s) {
     _db.ref('reminders').on('value', snap => {
       ss('reminders_data', snap.val() || {}); renderReminders();
     });
-    _db.ref('finance_plan').once('value', snap => {
-      if (snap.val()) { ss('fin_plan', snap.val()); renderFinPlan(); }
-    });
   } catch(e) { _syncDot('error'); console.warn('Firebase:', e); }
 })();
 
@@ -1361,52 +1310,6 @@ function deleteShoot(id) {
 document.getElementById('shootDate').value = todayStr();
 renderPhotoStats(); renderShootsList();
 
-// ── FINANCIAL PLAN ────────────────────────────────────────────────────────────
-function renderFinPlan() {
-  const p = ls('fin_plan', { income: 75000, rent: 15000, fixed: 5890, savings: 10000 });
-  document.getElementById('finIncome').value  = p.income  || '';
-  document.getElementById('finRent').value    = p.rent    || '';
-  document.getElementById('finFixed').value   = p.fixed   || '';
-  document.getElementById('finSavings').value = p.savings || '';
-  updateFinResult();
-}
-function updateFinResult() {
-  const income  = parseInt(document.getElementById('finIncome').value)  || 0;
-  const rent    = parseInt(document.getElementById('finRent').value)     || 0;
-  const fixed   = parseInt(document.getElementById('finFixed').value)    || 0;
-  const savings = parseInt(document.getElementById('finSavings').value)  || 0;
-  const free = income - rent - fixed - savings;
-  const perWeek = Math.round(free / 4.33);
-  const perDay  = Math.round(free / 30);
-  const cls = free >= 0 ? 'positive' : 'negative';
-  document.getElementById('finResult').innerHTML = `
-    <div class="fin-col">
-      <div class="fin-col-label">свободных в месяц</div>
-      <div class="fin-col-val ${cls}">${free.toLocaleString('ru')} ₽</div>
-    </div>
-    <div class="fin-col">
-      <div class="fin-col-label">в неделю</div>
-      <div class="fin-col-val ${cls}">${perWeek.toLocaleString('ru')} ₽</div>
-    </div>
-    <div class="fin-col">
-      <div class="fin-col-label">в день</div>
-      <div class="fin-col-val ${cls}">${perDay.toLocaleString('ru')} ₽</div>
-    </div>`;
-}
-function saveFinPlan() {
-  const p = {
-    income:  parseInt(document.getElementById('finIncome').value)  || 0,
-    rent:    parseInt(document.getElementById('finRent').value)     || 0,
-    fixed:   parseInt(document.getElementById('finFixed').value)    || 0,
-    savings: parseInt(document.getElementById('finSavings').value)  || 0,
-  };
-  ss('fin_plan', p);
-  updateFinResult();
-  _push('finance_plan', p);
-  const btn = document.getElementById('finSaveBtn');
-  if (btn) { btn.textContent = 'Сохранено ✓'; setTimeout(() => btn.textContent = 'Сохранить план', 2000); }
-}
-renderFinPlan();
 
 // ── GOALS ─────────────────────────────────────────────────────────────────────
 const PRESET_GOALS = [
