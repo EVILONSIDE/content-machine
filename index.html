@@ -260,8 +260,10 @@ html, body { width: 100%; min-height: 100vh; background: var(--black); font-fami
 .reminder-done-btn:hover { opacity: 0.8; }
 
 /* PLANNER WEEK STRIP */
-.planner-week-wrap { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
-.planner-week-wrap .week-nav-btn { padding: 6px 10px; min-width: 36px; text-align: center; }
+.planner-week-wrap { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+.planner-month-nav { display: flex; align-items: center; gap: 6px; }
+.planner-month-nav .week-nav-btn { padding: 6px 10px; min-width: 36px; text-align: center; }
+.planner-month-label { flex: 1; text-align: center; font-size: 13px; font-weight: 600; color: var(--text-dark); }
 .wstrip { display: flex; gap: 5px; flex: 1; }
 .wstrip-day {
   flex: 1; padding: 7px 4px; border-radius: 10px; border: 1.5px solid transparent;
@@ -461,6 +463,12 @@ html, body { width: 100%; min-height: 100vh; background: var(--black); font-fami
 
 .bottom-footer { font-size: 11px; color: rgba(255,255,255,0.18); padding-bottom: 16px; text-align: center; letter-spacing: 0.01em; }
 
+/* STATS */
+.stat-hero { text-align: center; padding: 28px 0 20px; }
+.stat-hero-label { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted-dark); margin-bottom: 6px; }
+.stat-hero-val { font-size: 72px; font-weight: 700; letter-spacing: -0.04em; line-height: 1; color: var(--text-dark); }
+.stat-hero-sub { font-size: 12px; color: var(--muted-dark); margin-top: 6px; }
+
 /* MOBILE */
 @media (max-width: 720px) {
   .shell { padding: 16px 12px 20px; gap: 14px; }
@@ -515,6 +523,7 @@ html, body { width: 100%; min-height: 100vh; background: var(--black); font-fami
     <button class="tab-btn"        id="tbtn-photo"   onclick="switchTab('photo')">Фото</button>
     <button class="tab-btn"        id="tbtn-notes"   onclick="switchTab('notes')">Заметки</button>
     <button class="tab-btn"        id="tbtn-diary"   onclick="switchTab('diary')">Дневник</button>
+    <button class="tab-btn"        id="tbtn-stats"   onclick="switchTab('stats')">Я</button>
   </div>
 
   <!-- ═══ TAB: СЕГОДНЯ ═══ -->
@@ -529,17 +538,14 @@ html, body { width: 100%; min-height: 100vh; background: var(--black); font-fami
       <div class="divider"></div>
     </div>
 
-    <div class="sec-label">привычки</div>
-    <div class="habits-row" id="habitsRow"></div>
-
-    <div class="divider"></div>
-
     <!-- ПЛАНЕР -->
-    <div class="sec-label">планер</div>
     <div class="planner-week-wrap">
-      <button class="week-nav-btn" onclick="shiftPlannerWeek(-1)">←</button>
+      <div class="planner-month-nav">
+        <button class="week-nav-btn" onclick="shiftPlannerWeek(-1)">←</button>
+        <span id="wstripMonthLabel" class="planner-month-label"></span>
+        <button class="week-nav-btn" onclick="shiftPlannerWeek(1)">→</button>
+      </div>
       <div class="wstrip" id="wstrip"></div>
-      <button class="week-nav-btn" onclick="shiftPlannerWeek(1)">→</button>
     </div>
     <div class="sec-label" id="tasksDayLabel" style="margin-top:4px;">задачи на сегодня</div>
     <div class="tasks-add">
@@ -651,7 +657,7 @@ html, body { width: 100%; min-height: 100vh; background: var(--black); font-fami
       </div>
     </div>
     <div id="finResult" class="fin-result"></div>
-    <button class="fin-save-btn" onclick="saveFinPlan()">Сохранить план</button>
+    <button class="fin-save-btn" id="finSaveBtn" onclick="saveFinPlan()">Сохранить план</button>
   </div>
 
   <!-- ═══ TAB: ЗАМЕТКИ ═══ -->
@@ -673,6 +679,55 @@ html, body { width: 100%; min-height: 100vh; background: var(--black); font-fami
       <button onclick="addNote()">Добавить</button>
     </div>
     <div id="notesList" class="notes-list"></div>
+  </div>
+
+  <!-- ═══ TAB: Я ═══ -->
+  <div id="tab-stats" style="display:none">
+    <div class="stat-hero">
+      <div class="stat-hero-label">дней без сигарет</div>
+      <div class="stat-hero-val" id="statsStreak">0</div>
+      <div class="stat-hero-sub">с 9 апреля 2026</div>
+    </div>
+    <div class="divider"></div>
+    <div class="sec-label">instagram @evilonside</div>
+    <div class="stats-row">
+      <div class="stat-mini">
+        <div class="stat-mini-label">Подписчики</div>
+        <div class="stat-mini-val" id="statsFollowers">321</div>
+        <div class="stat-mini-sub">цель 500 к июлю</div>
+        <div class="prog"><div class="prog-fill" id="statsFollowersBar" style="width:0%"></div></div>
+        <div class="fol-inline">
+          <input type="number" id="statsFolInput" placeholder="обновить...">
+          <button onclick="updateFollowersFromStats()">OK</button>
+        </div>
+      </div>
+      <div class="stat-mini">
+        <div class="stat-mini-label">Рилсов снято</div>
+        <div class="stat-mini-val" id="statsReels">—</div>
+        <div class="stat-mini-sub">план 3 в неделю</div>
+        <div class="prog"><div class="prog-fill" id="statsReelsBar" style="width:0%"></div></div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="sec-label">фотография</div>
+    <div class="stats-row">
+      <div class="stat-mini">
+        <div class="stat-mini-label">Заработано всего</div>
+        <div class="stat-mini-val" id="statsTotal">0 ₽</div>
+        <div class="stat-mini-sub" id="statsTotalSub">съёмок: 0</div>
+      </div>
+      <div class="stat-mini">
+        <div class="stat-mini-label">В этом месяце</div>
+        <div class="stat-mini-val" id="statsMonth">0 ₽</div>
+        <div class="stat-mini-sub" id="statsMonthSub">съёмок: 0</div>
+      </div>
+      <div class="stat-mini">
+        <div class="stat-mini-label">Средний чек</div>
+        <div class="stat-mini-val" id="statsAvg">—</div>
+        <div class="stat-mini-sub">цель 15 000 ₽</div>
+        <div class="prog"><div class="prog-fill" id="statsAvgBar" style="width:0%"></div></div>
+      </div>
+    </div>
   </div>
 
   <!-- ═══ TAB: ДНЕВНИК ═══ -->
@@ -947,9 +1002,6 @@ function _syncDot(s) {
       const v = snap.val();
       if (v != null) { ss('followers_current', v); renderFollowers(); updateCardSub(); renderGoals(); }
     });
-    _db.ref('planner/habits/' + today).on('value', snap => {
-      ss('habits_' + today, snap.val() || {}); renderHabits();
-    });
     _db.ref('planner/tasks/' + today).on('value', snap => {
       ss('tasks_' + today, snap.val() || {});
       if (plannerSelectedDate === today) { renderTasks(); renderWstrip(); }
@@ -979,7 +1031,7 @@ function _push(path, value) {
 }
 
 // ── TABS ──────────────────────────────────────────────────────────────────────
-const TABS = ['today','content','photo','notes','diary'];
+const TABS = ['today','content','photo','notes','diary','stats'];
 
 function switchTab(tab) {
   TABS.forEach(t => {
@@ -988,6 +1040,7 @@ function switchTab(tab) {
   });
   ss('active_tab', tab);
   if (tab === 'diary') loadDiaryFromFirebase();
+  if (tab === 'stats') renderStats();
 }
 
 // ── DATE ──────────────────────────────────────────────────────────────────────
@@ -1000,9 +1053,7 @@ function switchTab(tab) {
 
 function updateCardSub() {
   const fol = ls('followers_current', 321);
-  const days = Math.floor((new Date() - new Date('2026-04-09')) / 86400000);
-  document.getElementById('cardSub').textContent =
-    `@evilonside · ${fol.toLocaleString('ru')} подписчиков · ${days} дн без сигарет`;
+  document.getElementById('cardSub').textContent = `${fol.toLocaleString('ru')} подписчиков`;
 }
 updateCardSub();
 
@@ -1041,26 +1092,6 @@ function renderToday() {
   </div>${hasScript ? `<button class="today-btn" onclick="openScript(${found.scriptId})">Открыть скрипт</button>` : ''}`;
 }
 renderToday();
-
-// ── HABITS ────────────────────────────────────────────────────────────────────
-function renderHabits() {
-  const today = todayStr();
-  const h = ls('habits_' + today, {});
-  const streak = Math.floor((new Date() - new Date('2026-04-09')) / 86400000);
-  document.getElementById('habitsRow').innerHTML =
-    `<button class="habit-btn${h.gym?    ' done':''}" onclick="toggleHabit('gym')">Зал${h.gym? ' ✓':''}</button>
-     <button class="habit-btn${h.coffee?' done':''}" onclick="toggleHabit('coffee')">Кофе${h.coffee?' ✓':''}</button>
-     <div class="habit-streak"><span class="habit-streak-num">${streak}</span>&nbsp;дн без сигарет</div>`;
-}
-function toggleHabit(id) {
-  const today = todayStr();
-  const h = ls('habits_' + today, {});
-  h[id] = !h[id];
-  ss('habits_' + today, h);
-  renderHabits();
-  _push('planner/habits/' + today, h);
-}
-renderHabits();
 
 // ── REMINDERS ─────────────────────────────────────────────────────────────────
 function renderReminders() {
@@ -1110,6 +1141,10 @@ function getPlannerWeekDates() {
 function renderWstrip() {
   const days = getPlannerWeekDates();
   const today = todayStr();
+  const MONTHS = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+  const months = [...new Set(days.map(d => MONTHS[parseInt(d.date.split('-')[1])-1]))];
+  const mlEl = document.getElementById('wstripMonthLabel');
+  if (mlEl) mlEl.textContent = months.join(' / ');
   document.getElementById('wstrip').innerHTML = days.map(d => {
     const tasks = ls('tasks_' + d.date, {});
     const hasTasks = Object.keys(tasks).length > 0;
@@ -1368,6 +1403,8 @@ function saveFinPlan() {
   ss('fin_plan', p);
   updateFinResult();
   _push('finance_plan', p);
+  const btn = document.getElementById('finSaveBtn');
+  if (btn) { btn.textContent = 'Сохранено ✓'; setTimeout(() => btn.textContent = 'Сохранить план', 2000); }
 }
 renderFinPlan();
 
@@ -1458,6 +1495,57 @@ function deleteNote(id) {
   ss('user_notes', notes); renderNotes(); _push('notes', notes);
 }
 renderNotes();
+
+// ── STATS ─────────────────────────────────────────────────────────────────────
+function renderStats() {
+  const streak = Math.floor((new Date() - new Date('2026-04-09')) / 86400000);
+  const sEl = document.getElementById('statsStreak');
+  if (sEl) sEl.textContent = streak;
+
+  const cur = ls('followers_current', 321);
+  const fEl = document.getElementById('statsFollowers');
+  if (fEl) fEl.textContent = cur.toLocaleString('ru');
+  const fBar = document.getElementById('statsFollowersBar');
+  if (fBar) fBar.style.width = Math.max(0, Math.min(100, Math.round((cur - 321) / (500 - 321) * 100))) + '%';
+
+  const reels = countReelsDone();
+  const rEl = document.getElementById('statsReels');
+  if (rEl) rEl.innerHTML = `${reels}<span style="font-size:16px;font-weight:400;color:var(--muted-dark);">&thinsp;/ 12</span>`;
+  const rBar = document.getElementById('statsReelsBar');
+  if (rBar) rBar.style.width = Math.min(100, Math.round(reels / 12 * 100)) + '%';
+
+  const all = Object.values(getShoots());
+  const total = all.reduce((s, sh) => s + (sh.amount||0), 0);
+  const now = new Date();
+  const mon = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const mItems = all.filter(sh => sh.date && sh.date.startsWith(mon));
+  const mTotal = mItems.reduce((s, sh) => s + (sh.amount||0), 0);
+  const commItems = all.filter(sh => sh.commercial === true);
+  const avg = commItems.length ? Math.round(commItems.reduce((s, sh) => s + (sh.amount||0), 0) / commItems.length)
+            : (all.length ? Math.round(total / all.length) : 0);
+
+  const tEl = document.getElementById('statsTotal');
+  if (tEl) tEl.textContent = total ? rub(total) : '0 ₽';
+  const tSub = document.getElementById('statsTotalSub');
+  if (tSub) tSub.textContent = `съёмок: ${all.length}`;
+  const mEl = document.getElementById('statsMonth');
+  if (mEl) mEl.textContent = mTotal ? rub(mTotal) : '0 ₽';
+  const mSub = document.getElementById('statsMonthSub');
+  if (mSub) mSub.textContent = `съёмок: ${mItems.length}`;
+  const aEl = document.getElementById('statsAvg');
+  if (aEl) aEl.textContent = avg ? rub(avg) : '—';
+  const aBar = document.getElementById('statsAvgBar');
+  if (aBar) aBar.style.width = Math.min(100, Math.round(avg / 15000 * 100)) + '%';
+}
+
+function updateFollowersFromStats() {
+  const v = parseInt(document.getElementById('statsFolInput').value);
+  if (!v || v < 0) return;
+  ss('followers_current', v);
+  document.getElementById('statsFolInput').value = '';
+  renderFollowers(); renderStats(); updateCardSub(); renderGoals();
+  _push('cm/followers', v);
+}
 
 // ── DIARY ─────────────────────────────────────────────────────────────────────
 let diaryOffset = 0;
