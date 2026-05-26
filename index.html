@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>evilonside</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23111'/><text x='16' y='22' font-size='16' text-anchor='middle' fill='white' font-family='sans-serif'>e</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -986,6 +987,7 @@ function switchTab(tab) {
     document.getElementById('tab-' + t).style.display = t === tab ? '' : 'none';
     document.getElementById('tbtn-' + t).classList.toggle('active', t === tab);
   });
+  document.getElementById('tbtn-' + tab).scrollIntoView({ inline: 'nearest', block: 'nearest', behavior: 'smooth' });
   ss('active_tab', tab);
   if (tab === 'diary') loadDiaryFromFirebase();
   if (tab === 'stats') renderStats();
